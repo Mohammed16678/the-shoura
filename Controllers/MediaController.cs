@@ -46,14 +46,16 @@ public sealed class MediaController(IConfiguration configuration, IWebHostEnviro
             return BadRequest(new { message = "محتوى الملف لا يطابق نوعه المعلن." });
 
         var supabaseUrl = configuration["SUPABASE_URL"] ?? configuration["Supabase:Url"];
-        var supabaseKey = configuration["SUPABASE_SERVICE_ROLE_KEY"] ?? configuration["Supabase:ServiceRoleKey"];
+        var supabaseKey = configuration["SUPABASE_SECRET_KEY"] ?? configuration["SUPABASE_SERVICE_ROLE_KEY"] ?? configuration["Supabase:ServiceRoleKey"];
         var bucket = configuration["SUPABASE_STORAGE_BUCKET"] ?? configuration["Supabase:Bucket"] ?? "shoura-media";
         if (!string.IsNullOrWhiteSpace(supabaseUrl) && !string.IsNullOrWhiteSpace(supabaseKey))
         {
             var objectName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
             using var client = new HttpClient();
             client.DefaultRequestHeaders.Add("apikey", supabaseKey);
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", supabaseKey);
+            // New sb_secret keys are opaque API keys, not JWTs; only legacy service_role keys belong in Authorization.
+            if (!supabaseKey.StartsWith("sb_secret_", StringComparison.Ordinal))
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", supabaseKey);
             await using var input = file.OpenReadStream();
             using var body = new StreamContent(input);
             body.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
