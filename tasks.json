@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "تشغيل خادم شورى محليًا",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["run", "--project", "backend/Shoura.API/Shoura.API.csproj", "--no-launch-profile", "--", "--urls", "http://0.0.0.0:5126"],
+      "options": { "cwd": "${workspaceFolder}", "env": { "ASPNETCORE_ENVIRONMENT": "Development" } },
+      "problemMatcher": "$msCompile",
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "بناء خادم شورى",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["build", "backend/Shoura.API/Shoura.API.csproj"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}
