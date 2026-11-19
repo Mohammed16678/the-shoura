@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shoura
+      POSTGRES_USER: shoura
+      POSTGRES_PASSWORD: ${SHOURA_POSTGRES_PASSWORD:?Set SHOURA_POSTGRES_PASSWORD in your environment}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - shoura_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shoura -d shoura"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  shoura_postgres:
