@@ -1,0 +1,6 @@
+@Shoura.API_HostAddress = http://localhost:5126
+
+GET {{Shoura.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
