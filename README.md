@@ -20,10 +20,10 @@
 
 - `SHOURA_DATABASE_PROVIDER=Postgres`
 - `SHOURA_CONNECTION_STRING` بسلسلة اتصال PostgreSQL من Supabase.
-- `SUPABASE_URL` و`SUPABASE_SERVICE_ROLE_KEY` و`SUPABASE_STORAGE_BUCKET` للوسائط.
+- `SUPABASE_URL` و`SUPABASE_SECRET_KEY` و`SUPABASE_STORAGE_BUCKET` للوسائط.
 - `SHOURA_AUTH_SIGNING_KEY` كسِر عشوائي قوي وفريد.
 
-مفتاح `service_role` سر خادمي لا تضعه في الواجهة أو GitHub. يطبق الخادم ترحيلات قاعدة البيانات عند بدء التشغيل ويرفع الصور والفيديو والصوت إلى Supabase عند ضبط مفاتيح التخزين. من دونها يستخدم تخزيناً محلياً ملائماً للتطوير فقط.
+مفتاح `SUPABASE_SECRET_KEY` سر خادمي لا تضعه في الواجهة أو GitHub. يطبق الخادم ترحيلات قاعدة البيانات عند بدء التشغيل ويرفع الصور والفيديو والصوت إلى Supabase عند ضبط مفاتيح التخزين. من دونها يستخدم تخزيناً محلياً ملائماً للتطوير فقط.
 
 ## ما يدعمه الإصدار الحالي
 
