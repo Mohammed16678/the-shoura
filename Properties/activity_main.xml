@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- حقل كتابة المنشور -->
+    <EditText
+        android:id="@+id/etPostContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="ماذا يدور في ذهنك؟ (مشورة)..."
+        android:minLines="3"
+        android:gravity="top"
+        android:padding="12dp"
+        android:background="@android:drawable/editbox_background_normal"/>
+
+    <!-- زر النشر -->
+    <Button
+        android:id="@+id/btnSubmitPost"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="نشر"
+        android:backgroundTint="#1DA1F2"
+        android:textColor="#FFFFFF"/>
+
+    <!-- مكان عرض المنشورات -->
+    <TextView
+        android:id="@+id/tvPostsList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp"
+        android:textSize="16sp"
+        android:textColor="#333333"
+        android:scrollbars="vertical"/>
+
+</LinearLayout>
