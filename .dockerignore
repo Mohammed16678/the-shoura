@@ -3,3 +3,5 @@ obj/
 **/bin/
 **/obj/
 .git/
+Shoura.API.deps.json
+Shoura.API.runtimeconfig.json
