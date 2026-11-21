@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Threading.RateLimiting;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
 using Npgsql;
 using Shoura.API.Security;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Shoura.API.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,9 +28,13 @@ if (databaseProvider.Equals("Postgres", StringComparison.OrdinalIgnoreCase))
 }
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    if (databaseProvider.Equals("Postgres", StringComparison.OrdinalIgnoreCase)) options.UseNpgsql(connectionString);
-    else if (databaseProvider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase)) options.UseSqlite(connectionString);
-    else throw new InvalidOperationException("Database:Provider must be Sqlite or Postgres.");
+    if (databaseProvider.Equals("Postgres", StringComparison.OrdinalIgnoreCase))
+        options.UseNpgsql(connectionString)
+            .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
+    else if (databaseProvider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase))
+        options.UseSqlite(connectionString);
+    else
+        throw new InvalidOperationException("Database:Provider must be Sqlite or Postgres.");
 });
 
 builder.Services.AddControllers();
@@ -204,7 +208,7 @@ static string NormalizePostgresConnectionString(string value)
         Username = credentials.Length > 0 ? Uri.UnescapeDataString(credentials[0]) : string.Empty,
         Password = credentials.Length > 1 ? Uri.UnescapeDataString(credentials[1]) : string.Empty,
         SslMode = SslMode.Require,
-GssEncryptionMode = GssEncryptionMode.Disable
+        GssEncryptionMode = GssEncryptionMode.Disable
     };
 
     foreach (var parameter in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
