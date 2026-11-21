@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
+using Npgsql;
 using Shoura.API.Security;
 using Shoura.API.Data;
 
@@ -17,7 +18,13 @@ builder.Services.AddOpenApi();
 var databaseProvider = builder.Configuration["Database:Provider"] ?? Environment.GetEnvironmentVariable("SHOURA_DATABASE_PROVIDER") ?? "Sqlite";
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=shoura.db";
 if (databaseProvider.Equals("Postgres", StringComparison.OrdinalIgnoreCase))
-    connectionString = Environment.GetEnvironmentVariable("SHOURA_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("Postgres") ?? throw new InvalidOperationException("Set SHOURA_CONNECTION_STRING or ConnectionStrings:Postgres.");
+{
+    connectionString = Environment.GetEnvironmentVariable("SHOURA_CONNECTION_STRING")
+        ?? Environment.GetEnvironmentVariable("DATABASE_URL")
+        ?? builder.Configuration.GetConnectionString("Postgres")
+        ?? throw new InvalidOperationException("Set SHOURA_CONNECTION_STRING, DATABASE_URL, or ConnectionStrings:Postgres.");
+    connectionString = NormalizePostgresConnectionString(connectionString);
+}
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (databaseProvider.Equals("Postgres", StringComparison.OrdinalIgnoreCase)) options.UseNpgsql(connectionString);
@@ -175,9 +182,55 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ربط الـ Controllers الخاصة بمشروعنا
 app.MapControllers();
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
 app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
 app.Run();
+
+static string NormalizePostgresConnectionString(string value)
+{
+    if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
+        (uri.Scheme != "postgres" && uri.Scheme != "postgresql"))
+        return value;
+
+    var credentials = uri.UserInfo.Split(':', 2);
+    var builder = new NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.IsDefaultPort ? 5432 : uri.Port,
+        Database = Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/')),
+        Username = credentials.Length > 0 ? Uri.UnescapeDataString(credentials[0]) : string.Empty,
+        Password = credentials.Length > 1 ? Uri.UnescapeDataString(credentials[1]) : string.Empty,
+        SslMode = SslMode.Require
+    };
+
+    foreach (var parameter in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+    {
+        var parts = parameter.Split('=', 2);
+        var key = Uri.UnescapeDataString(parts[0].Replace('+', ' '));
+        var parameterValue = parts.Length > 1
+            ? Uri.UnescapeDataString(parts[1].Replace('+', ' '))
+            : string.Empty;
+
+        if (key.Equals("sslmode", StringComparison.OrdinalIgnoreCase))
+            builder.SslMode = parameterValue.ToLowerInvariant() switch
+            {
+                "disable" => SslMode.Disable,
+                "allow" => SslMode.Allow,
+                "prefer" => SslMode.Prefer,
+                "require" => SslMode.Require,
+                "verify-ca" or "verifyca" => SslMode.VerifyCA,
+                "verify-full" or "verifyfull" => SslMode.VerifyFull,
+                _ => throw new ArgumentException("The PostgreSQL URL contains an unsupported sslmode value.")
+            };
+        else if (key.Equals("application_name", StringComparison.OrdinalIgnoreCase))
+            builder.ApplicationName = parameterValue;
+        else if (key.Equals("timeout", StringComparison.OrdinalIgnoreCase))
+            builder.Timeout = int.Parse(parameterValue);
+        else if (key.Equals("keepalives", StringComparison.OrdinalIgnoreCase))
+            builder.TcpKeepAlive = bool.Parse(parameterValue);
+    }
+
+    return builder.ConnectionString;
+}
