@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
 using Npgsql;
 using Shoura.API.Security;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Shoura.API.Data;
 
 var builder = WebApplication.CreateBuilder(args);
