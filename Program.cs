@@ -165,8 +165,10 @@ foreach (var storedPath in Directory.EnumerateFiles(mediaPath))
 }
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment()) app.UseHsts();
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+    app.UseHsts();
+else
+    app.UseHttpsRedirection();
 app.Use(async (context, next) =>
 {
     context.Response.Headers.TryAdd("X-Content-Type-Options", "nosniff");
