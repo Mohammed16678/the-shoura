@@ -39,7 +39,7 @@ public class AuthController : ControllerBase
             Name = model.Name.Trim(),
             Handle = handle,
             Email = email,
-            Bio = model.Bio?.Trim() ?? "مرحباً بك في شورى",
+            Bio = model.Bio?.Trim() ?? "مرحباً بك في موعظة",
             AcceptedTermsVersion = CurrentTermsVersion,
             PasswordHash = HashPassword(model.Password)
         };

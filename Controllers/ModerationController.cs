@@ -49,7 +49,7 @@ public sealed class ModerationController(AppDbContext db, IConfiguration configu
             Details = request.Details?.Trim()
         });
         await db.SaveChangesAsync(cancellationToken);
-        return Accepted(new { message = "وصل البلاغ إلى فريق مراجعة شورى." });
+        return Accepted(new { message = "وصل البلاغ إلى فريق مراجعة موعظة." });
     }
 
     [HttpGet("reports")]

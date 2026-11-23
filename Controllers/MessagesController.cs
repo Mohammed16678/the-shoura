@@ -62,7 +62,7 @@ public sealed class MessagesController(AppDbContext db, IConfiguration configura
                 !MediaReference.TryGetStoredFileName(request.MediaUrl, out var mediaFile) ||
                 !MediaReference.MatchesType(mediaFile, "audio") ||
                 !System.IO.File.Exists(Path.Combine(Path.GetFullPath(root), mediaFile)))
-                return BadRequest(new { message = "يجب إرفاق ملف صوتي صالح تم رفعه إلى شورى." });
+                return BadRequest(new { message = "يجب إرفاق ملف صوتي صالح تم رفعه إلى موعظة." });
         }
 
         var message = new Message

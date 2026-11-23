@@ -30,6 +30,9 @@ public sealed class MediaController(IConfiguration configuration, IWebHostEnviro
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0)
             return Unauthorized();
+        var uploaderEmail = await db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.Email).SingleOrDefaultAsync(cancellationToken);
+        if (GuestAccounts.IsGuestEmail(uploaderEmail))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = GuestAccounts.UploadMessage });
         if (file is null || file.Length == 0) return BadRequest(new { message = "اختر ملفًا غير فارغ." });
         if (file.Length > MaxFileSize) return StatusCode(StatusCodes.Status413PayloadTooLarge);
 

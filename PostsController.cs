@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Shoura.API.Data;
 using Shoura.API.Models;
+using Shoura.API.Security;
 
 namespace Shoura.API.Controllers;
 
@@ -29,6 +30,11 @@ public class PostsController(AppDbContext db) : ControllerBase
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         if (string.IsNullOrWhiteSpace(model.Content) && string.IsNullOrWhiteSpace(model.MediaUrl)) return BadRequest(new { message = "اكتب شيئاً أو أرفق وسائط." });
         if (model.MediaType is not ("text" or "image" or "video" or "audio")) return BadRequest();
+        if (!string.IsNullOrWhiteSpace(model.MediaUrl) || model.MediaType != "text")
+        {
+            var email = await db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.Email).SingleOrDefaultAsync(ct);
+            if (GuestAccounts.IsGuestEmail(email)) return StatusCode(StatusCodes.Status403Forbidden, new { message = GuestAccounts.UploadMessage });
+        }
         if (model.MediaType == "video" && model.MediaSizeBytes > 20 * 1024 * 1024) return BadRequest(new { message = "الحد الأقصى للفيديو 20 ميجابايت." });
         var content = model.Content.Trim();
         var hashtags = System.Text.RegularExpressions.Regex.Matches(content, @"(?<!\w)#([\p{L}\d_]+)")
